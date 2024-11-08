@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views
 
-urlpatterns = [path("", views.home, name = "home"),
-               path('image-recognition/', views.image_recognition, name='image_recognition'),
-               ]
+urlpatterns = [
+    # API endpoint for image upload
+    path('api/upload-image/', views.upload_image, name='upload_image'),
+]
