@@ -1,6 +1,8 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .sam2_model import predictor
+from .models import ProcessedImage
+from django.shortcuts import get_object_or_404
 import numpy as np
 from PIL import Image, ImageOps
 import json
@@ -69,6 +71,14 @@ def process_image(request):
             combined_image.save(buffer, format='PNG')
             img_str = base64.b64encode(buffer.getvalue()).decode('utf-8')
 
+            # Save to database
+            ProcessedImage.objects.create(
+                original_image_name=image_file.name,
+                processed_image=img_str,
+                points=points,
+                labels=labels
+            )
+
             return JsonResponse({'image': img_str})
 
         return JsonResponse({'error': 'Invalid request'}, status=400)
@@ -77,3 +87,40 @@ def process_image(request):
         traceback_str = ''.join(traceback.format_exception(None, e, e.__traceback__))
         print(traceback_str)
         return JsonResponse({'error': 'Server error', 'message': str(e)}, status=500)
+
+def get_processed_image(request, image_id):
+    if request.method == 'GET':
+        # Fetch the processed image from the database by ID
+        processed_image = get_object_or_404(ProcessedImage, id=image_id)
+        return JsonResponse({
+            'original_image_name': processed_image.original_image_name,
+            'processed_image': processed_image.processed_image,
+            'points': processed_image.points,
+            'labels': processed_image.labels,
+            'created_at': processed_image.created_at
+        }, status=200)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+def update_image_metadata(request, image_id):
+    if request.method == 'PUT':
+        # Fetch the processed image by ID
+        processed_image = get_object_or_404(ProcessedImage, id=image_id)
+
+        # Parse the updated metadata from the request body
+        body = json.loads(request.body.decode('utf-8'))
+        updated_points = body.get('points', processed_image.points)
+        updated_labels = body.get('labels', processed_image.labels)
+
+        # Update the metadata
+        processed_image.points = updated_points
+        processed_image.labels = updated_labels
+        processed_image.save()
+
+        return JsonResponse({
+            'message': 'Metadata updated successfully',
+            'points': processed_image.points,
+            'labels': processed_image.labels
+        }, status=200)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
