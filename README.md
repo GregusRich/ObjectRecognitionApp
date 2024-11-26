@@ -99,3 +99,36 @@ The Next.js frontend will be available at http://localhost:3000.
 #### Frontend
 - Node.js >= 18.0.0
 - Next.js >= 13.0.0
+
+---
+
+### **Additional Notes: Handling Missing Files**
+If any files related to SAM-2 are missing, you can download the full SAM-2 repository directly from its 
+official GitHub repository. Follow the steps below:
+
+#### Download the SAM-2 Repository
+```bash
+git clone https://github.com/facebookresearch/sam2.git
+```
+#### Replace the sam2 Folder
+1. Delete the existing sam2 folder in the project directory (ObjectRecognitionApp/sam2)
+2. Copy the downloaded sam2 folder from the cloned repository into the project directory
+3. Ensure that the folder structure matches the following:
+
+```bash
+ObjectRecognitionApp/
+    sam2/
+        checkpoints/
+        sam2/
+            configs/
+                <other files>
+                sam2.1/
+                    sam2.1_hiera_b+.yaml
+                    <other files>
+                <other files>
+                
+```
+#### Verify Configuration
+
+Ensure the checkpoints and configs folders are present, and that the referenced files in the project code 
+(sam2.1_hiera_base_plus.pt and sam2.1_hiera_b+.yaml) exist within their correct locations.
